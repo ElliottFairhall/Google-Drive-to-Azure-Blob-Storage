@@ -1,0 +1,104 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "functionAppName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Azure Function App."
+            }
+        },
+        "storageAccountName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Azure Storage Account."
+            }
+        },
+        "eventHubNamespaceName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Azure Event Hub Namespace."
+            }
+        },
+        "eventHubName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Azure Event Hub."
+            }
+        },
+        "keyVaultName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Azure Key Vault."
+            }
+        },
+        "googleClientId": {
+            "type": "string",
+            "metadata": {
+                "description": "The client ID for the Google API."
+            }
+        },
+        "googleClientSecret": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The client secret for the Google API."
+            }
+        },
+        "googleRefreshToken": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The refresh token for the Google API."
+            }
+        }
+    },
+    "variables": {
+        "functionAppName": "[parameters('functionAppName')]",
+        "storageAccountName": "[parameters('storageAccountName')]",
+        "eventHubNamespaceName": "[parameters('eventHubNamespaceName')]",
+        "eventHubName": "[parameters('eventHubName')]",
+        "keyVaultName": "[parameters('keyVaultName')]",
+        "appInsightsName": "[concat(variables('functionAppName'), '-appinsights')]",
+        "blobContainerName": "mycontainer",
+        "googleDriveFolderName": "My Google Drive",
+        "googleDriveFolderId": "",
+        "functionAppResourceGroup": "[resourceGroup().name]",
+        "location": "[resourceGroup().location]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[variables('storageAccountName')]",
+            "apiVersion": "2019-06-01",
+            "location": "[variables('location')]",
+            "sku": {
+                "name": "Standard_LRS",
+                "tier": "Standard"
+            },
+            "kind": "StorageV2",
+            "properties": {}
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices",
+            "name": "[concat(variables('storageAccountName'), '/default')]",
+            "apiVersion": "2019-06-01",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+            ],
+            "properties": {
+                "cors": {
+                    "corsRules": [
+                        {
+                            "allowedOrigins": [
+                                "*"
+                            ],
+                            "allowedMethods": [
+                                "GET",
+                                "HEAD",
+                                "OPTIONS"
+                            ],
+                            "maxAgeInSeconds": 3000,
+                            "exposedHeaders": [
+                                "x-ms-*"
+                            ],
+                            "allowedHeaders": [
+                                "x-ms-*"
