@@ -8,6 +8,7 @@ import json
 import logging
 import os
 from pathlib import Path
+from typing import cast
 
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
@@ -85,7 +86,7 @@ def get_credentials() -> ServiceAccountCredentials:
     )
 
     logger.info("Google Drive credentials loaded successfully")
-    return credentials
+    return cast("ServiceAccountCredentials", credentials)
 
 
 def get_credentials_from_file(credentials_path: Path | str) -> ServiceAccountCredentials:
@@ -121,4 +122,4 @@ def get_credentials_from_file(credentials_path: Path | str) -> ServiceAccountCre
     )
 
     logger.info("Google Drive credentials loaded from file successfully")
-    return credentials
+    return cast("ServiceAccountCredentials", credentials)

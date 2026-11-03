@@ -33,7 +33,8 @@ def load_state() -> dict[str, Any]:
 
     try:
         with STATE_FILE.open("r", encoding="utf-8") as f:
-            return json.load(f)
+            loaded: dict[str, Any] = json.load(f)
+            return loaded
     except json.JSONDecodeError as e:
         logger.warning("Failed to parse state file: %s", e)
         return {}

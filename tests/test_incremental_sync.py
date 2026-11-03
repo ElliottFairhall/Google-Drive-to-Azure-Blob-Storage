@@ -124,7 +124,7 @@ class TestGetFilesToSync:
         mock_service = MagicMock()
 
         # First file is old, second is new
-        def mock_get_execute(*args, **kwargs):
+        def mock_get_execute(*_args, **_kwargs):
             file_id = mock_service.files().get.call_args.kwargs.get(
                 "fileId"
             ) or mock_service.files().get.call_args[1].get("fileId")
@@ -159,7 +159,7 @@ class TestGetFilesToSync:
 
         with patch("incremental_sync.is_file_updated") as mock_is_updated:
             mock_is_updated.return_value = True
-            result = get_files_to_sync(mock_service, files, last_sync)
+            get_files_to_sync(mock_service, files, last_sync)
 
         # Should only process the file with ID
         assert mock_is_updated.call_count == 1

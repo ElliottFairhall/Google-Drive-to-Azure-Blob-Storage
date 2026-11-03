@@ -174,10 +174,13 @@ def main() -> int:
         file_id = file.get("id")
 
         # Skip unchanged files in incremental mode
-        if incremental_enabled and file_id:
-            if not is_file_updated(service, file_id, last_sync_time):
-                logger.debug("Skipping unchanged file: %s", file_name)
-                continue
+        if (
+            incremental_enabled
+            and file_id
+            and not is_file_updated(service, file_id, last_sync_time)
+        ):
+            logger.debug("Skipping unchanged file: %s", file_name)
+            continue
 
         # Sync the file
         if sync_file(service, file, connection_string, container_name):
