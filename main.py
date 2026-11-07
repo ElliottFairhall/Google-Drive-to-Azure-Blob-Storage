@@ -165,6 +165,10 @@ def main() -> int:
     else:
         logger.info("Full sync mode (incremental sync disabled)")
 
+    # Record when this run started. Saving the start time (not the end time) means a file
+    # modified while the run is in progress is picked up by the next run.
+    sync_started = datetime.utcnow()
+
     # Process files
     success_count = 0
     error_count = 0
@@ -188,10 +192,17 @@ def main() -> int:
         else:
             error_count += 1
 
-    # Update sync state
-    if incremental_enabled and success_count > 0:
-        save_state(datetime.utcnow())
+    # Update sync state only when every file succeeded. If any file failed, the previous
+    # timestamp is kept so the next incremental run retries it (uploads overwrite, so
+    # re-sending files that did succeed is harmless).
+    if incremental_enabled and success_count > 0 and error_count == 0:
+        save_state(sync_started)
         logger.info("Sync state updated")
+    elif incremental_enabled and error_count > 0:
+        logger.warning(
+            "Sync state not updated because %d file(s) failed; they will be retried next run",
+            error_count,
+        )
 
     # Summary
     logger.info(

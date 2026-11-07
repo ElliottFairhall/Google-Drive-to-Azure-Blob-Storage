@@ -1,0 +1,54 @@
+name: Python CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+env:
+  # Override per project when its dependencies need another Python (e.g. '3.11').
+  PYTHON_VERSION: '3.12'
+
+jobs:
+  python:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      # The runner image's Python carries stray packages (for example pytest-flask),
+      # so everything runs in a clean virtualenv.
+      - name: Create virtualenv
+        run: |
+          python -m venv "$RUNNER_TEMP/venv"
+          echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
+
+      # Correctness-only rules: syntax errors, undefined names, invalid
+      # comparisons. Style is left to the project's own pre-commit hooks.
+      - name: Lint (ruff, correctness rules)
+        run: |
+          pip install --quiet ruff
+          ruff check --select E9,F63,F7,F82 --extend-exclude '*.ipynb' --output-format=github .
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          for f in requirements.txt requirements-dev.txt; do
+            if [ -f "$f" ]; then pip install -r "$f"; fi
+          done
+          if [ -f pyproject.toml ]; then pip install -e . || true; fi
+          # pytest-cov: some projects set --cov in their pytest config.
+          pip install pytest pytest-cov
+
+      - name: Test
+        run: |
+          if find . -path ./venv -prune -o \( -name 'test_*.py' -o -name '*_test.py' \) -print | grep -q .; then
+            python -m pytest -q
+          else
+            echo "No tests found."
+          fi
